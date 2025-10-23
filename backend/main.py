@@ -271,17 +271,33 @@ def dashboard_summary():
 # Seed endpoint
 @app.post('/seed')
 def seed_default():
+    # aseguramos que la BD esté creada antes de insertar
+    from db import create_db_and_tables
+    create_db_and_tables()
+
     with Session(engine) as session:
         if session.exec(select(Product)).first():
-            return {'status':'already seeded'}
-        p1 = Product(sku='A1', name='Almohada A', price=49.9, stock=100, min_stock=5)
-        p2 = Product(sku='B2', name='Colchón B', price=399.0, stock=10, min_stock=2)
-        p3 = Product(sku='C3', name='Sábana C', price=89.5, stock=50, min_stock=5)
-        session.add_all([p1,p2,p3])
-        s1 = Supplier(name='Proveedor 1', email='prov1@example.com'); s2 = Supplier(name='Proveedor 2', email='prov2@example.com')
-        session.add_all([s1,s2])
-        w1 = Warehouse(name='Almacen Central', location='Lima'); session.add(w1)
-        from auth import get_password_hash
-        admin = User(username='admin', password_hash=get_password_hash('admin'), role='admin')
-        session.add(admin); session.commit()
-    return {'status':'seeded'}
+            return {'status': 'already seeded'}
+        try:
+            p1 = Product(sku='A1', name='Almohada A', price=49.9, stock=100, min_stock=5)
+            p2 = Product(sku='B2', name='Colchón B', price=399.0, stock=10, min_stock=2)
+            p3 = Product(sku='C3', name='Sábana C', price=89.5, stock=50, min_stock=5)
+            session.add_all([p1, p2, p3])
+
+            s1 = Supplier(name='Proveedor 1', email='prov1@example.com')
+            s2 = Supplier(name='Proveedor 2', email='prov2@example.com')
+            session.add_all([s1, s2])
+
+            w1 = Warehouse(name='Almacen Central', location='Lima')
+            session.add(w1)
+
+            from auth import get_password_hash
+            admin = User(username='admin', password_hash=get_password_hash('admin'), role='admin')
+            session.add(admin)
+
+            session.commit()
+            return {'status': 'seeded'}
+        except Exception as e:
+            session.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+
