@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
+const API_BASE = 'https://calm-backend-doe9.onrender.com';
 
 export function setToken(token){ localStorage.setItem('token', token); axios.defaults.headers.common['Authorization'] = `Bearer ${token}`; }
 export function clearToken(){ localStorage.removeItem('token'); delete axios.defaults.headers.common['Authorization']; }
